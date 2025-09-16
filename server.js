@@ -134,7 +134,8 @@ app.use(session({
   cookie: { maxAge: 5 * 60 * 1000 } // 5 min session
 }));
 
-app.get('/api/*', (req, res) => {
+//app.get('/api/*', (req, res) => {
+app.get('/api/id/:email', (req, res) => {
   //const targetUrl = `https://account.circulations.digital${req.originalUrl.replace('/api', '')}`;
   
   // Try to extract email after "/api/id="
@@ -933,4 +934,5 @@ app.options('/api/*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
+
 }); */
