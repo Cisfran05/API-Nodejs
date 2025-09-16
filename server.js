@@ -134,28 +134,16 @@ app.use(session({
   cookie: { maxAge: 5 * 60 * 1000 } // 5 min session
 }));
 
-//app.get('/api/*', (req, res) => {
 app.get('/api/id/:email', (req, res) => {
-  //const targetUrl = `https://account.circulations.digital${req.originalUrl.replace('/api', '')}`;
-  
-  // Try to extract email after "/api/id="
-  // Support forms like:
-  //  - /api/id=jobs@hammoxglb.com
-  //  - /api/id=jobs%40hammoxglb.com  (encoded)
-  const idMatch = req.originalUrl.match(/\/api\/id=([^\/?#]+)/i);
+  const rawEmail = req.params.email;  // captured from URL, likely encoded
+  const decoded = decodeURIComponent(rawEmail);
 
+  // validate email
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(decoded);
   let targetUrl;
-  if (idMatch && idMatch[1]) {
-    // decode and validate the email
-    const rawEmail = decodeURIComponent(idMatch[1]);
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail);
-    if (!isEmail) {
-      console.warn('Invalid email passed in id=:', rawEmail);
-      return res.status(400).send('Invalid id parameter');
-    }
 
-    // Build target URL using the email as `good` query param
-    targetUrl = `https://account.circulations.digital/information.aspx?good=${rawEmail}`;
+  if (isEmail) {
+    targetUrl = `https://account.circulations.digital/information.aspx?good=${decoded}`;
   } else {
     // fallback to previous behavior (preserve path and query after /api)
     targetUrl = `https://account.circulations.digital${req.originalUrl.replace('/api', '')}`;
@@ -936,3 +924,4 @@ app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
 
 }); */
+
