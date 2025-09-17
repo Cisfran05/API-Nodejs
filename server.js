@@ -139,6 +139,30 @@ app.get('/', (req, res) => {
   res.send('Hello - API running');
 });
 
+// Test route: fetch google.com and return its HTML
+app.get('/test-google', (req, res) => {
+  const url = 'https://www.google.com';
+
+  https.get(url, { headers: { 'User-Agent': 'Node.js/HTTPS' } }, (proxyRes) => {
+    let data = '';
+
+    proxyRes.on('data', (chunk) => {
+      data += chunk;
+    });
+
+    proxyRes.on('end', () => {
+      // set content type so browser knows it's HTML
+      res.setHeader('Content-Type', 'text/html');
+      // send the HTML from google.com
+      res.status(proxyRes.statusCode).send(data);
+    });
+
+  }).on('error', (err) => {
+    console.error('Error fetching Google:', err.message);
+    res.status(500).send('Error fetching Google');
+  });
+});
+
 // API route that matches with slash param
 app.get('/api/id/:email', (req, res) => {
   const rawEmail = req.params.email;
@@ -392,4 +416,5 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
