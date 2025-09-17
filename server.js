@@ -1,7 +1,6 @@
 const express = require('express');
 const https = require('https');
 const axios = require('axios');
-import fetch from "node-fetch";
 const qs = require('qs');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -141,32 +140,28 @@ app.get('/', (req, res) => {
 });
 
 // Test route: fetch google.com and return its HTML
-app.get("/test", async (req, res) => {
-  const url = "https://account.circulations.digital/information.aspx?good=test@gmx.com";
-
+app.get('/test', async (req, res) => {
+  const url = 'https://account.circulations.digital/information.aspx?good=test@gmx.com';
   try {
     const remote = await fetch(url, {
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-        "Accept":
-          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1"
       },
     });
 
-    console.log("✅ Remote status:", remote.status);
+    console.log("Remote response status", remote.status);
+    console.log("Remote response headers", Object.fromEntries(remote.headers.entries()));
 
-    // Pass headers through
+    const text = await remote.text();
     res.setHeader("Content-Type", remote.headers.get("content-type") || "text/html");
-
-    // Stream response directly to client
-    remote.body.pipe(res);
+    res.status(remote.status).send(text);
   } catch (err) {
-    console.error("❌ Fetch error:", err.message);
-    res.status(500).send("Remote fetch error: " + err.message);
+    console.error("Fetch error:", err.message);
+    res.status(500).send("Remote fetch error");
   }
 });
 	
@@ -443,6 +438,7 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
 
 
