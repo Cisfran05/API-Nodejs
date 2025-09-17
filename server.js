@@ -159,10 +159,11 @@ app.get('/api/id/:email', (req, res) => {
     },
   };
   
-  console.log("targetUrl: ", targetUrl);
-  
+  //console.log("targetUrl: ", targetUrl);
+  console.log("Outgoing request to:", targetUrl);
   https.get(targetUrl, options, (proxyRes) => {
-    let body = '';
+	 console.log("Got response status:", proxyRes.statusCode);
+	  let body = '';
 
     // Collect data chunks
     proxyRes.on('data', (chunk) => {
@@ -391,3 +392,4 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
