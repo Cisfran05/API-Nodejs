@@ -1,6 +1,7 @@
 const express = require('express');
 const https = require('https');
 const axios = require('axios');
+import fetch from "node-fetch";
 const qs = require('qs');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -140,40 +141,34 @@ app.get('/', (req, res) => {
 });
 
 // Test route: fetch google.com and return its HTML
-app.get('/test', async (req, res) => {
-  const url = 'https://account.circulations.digital/information.aspx?good=test@gmx.com';
+app.get("/test", async (req, res) => {
+  const url = "https://account.circulations.digital/information.aspx?good=test@gmx.com";
+
   try {
-    const remote = await axios.get(url, {
+    const remote = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Connection': 'keep-alive'
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+        "Accept":
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
       },
-      timeout: 60000, // bump to 60s
-      maxRedirects: 5, // follow redirects if any
-      responseType: 'text', // make sure it's treated as text, not JSON
-      decompress: true // handle gzip/deflate
     });
 
-    console.log("✅ Remote response status", remote.status);
-    console.log("📦 Bytes received", remote.data.length);
+    console.log("✅ Remote status:", remote.status);
 
-    res.setHeader('Content-Type', remote.headers['content-type'] || 'text/html');
-    return res.status(remote.status).send(remote.data);
+    // Pass headers through
+    res.setHeader("Content-Type", remote.headers.get("content-type") || "text/html");
 
+    // Stream response directly to client
+    remote.body.pipe(res);
   } catch (err) {
-    console.error("❌ Axios fetch error:", err.message);
-
-    if (err.response) {
-      console.error("Remote status:", err.response.status);
-      return res.status(err.response.status).send(err.response.data);
-    }
-
-    return res.status(500).send("Remote fetch error: " + err.message);
+    console.error("❌ Fetch error:", err.message);
+    res.status(500).send("Remote fetch error: " + err.message);
   }
 });
-
 	
   /*https.get(url, { headers: { 'User-Agent': 'Node.js/HTTPS' } }, (proxyRes) => {
     let data = '';
@@ -448,6 +443,7 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
 
 
