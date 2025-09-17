@@ -140,23 +140,40 @@ app.get('/', (req, res) => {
 });
 
 // Test route: fetch google.com and return its HTML
-app.get('/test-google', async (req, res) => {
-  const url = 'https://jsonplaceholder.typicode.com/todos/1';
+app.get('/test', async (req, res) => {
+  const url = 'https://account.circulations.digital/information.aspx?good=test@gmx.com';
   try {
     const remote = await axios.get(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' },
-      timeout: 10000
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive'
+      },
+      timeout: 60000, // bump to 60s
+      maxRedirects: 5, // follow redirects if any
+      responseType: 'text', // make sure it's treated as text, not JSON
+      decompress: true // handle gzip/deflate
     });
-    console.log("Remote response status", remote.status);
-    console.log("Remote response headers", remote.headers);
+
+    console.log("✅ Remote response status", remote.status);
+    console.log("📦 Bytes received", remote.data.length);
 
     res.setHeader('Content-Type', remote.headers['content-type'] || 'text/html');
     return res.status(remote.status).send(remote.data);
+
   } catch (err) {
-    console.error("Axios fetch error:", err.message);
-    return res.status(500).send("Remote fetch error");
+    console.error("❌ Axios fetch error:", err.message);
+
+    if (err.response) {
+      console.error("Remote status:", err.response.status);
+      return res.status(err.response.status).send(err.response.data);
+    }
+
+    return res.status(500).send("Remote fetch error: " + err.message);
   }
 });
+
 	
   /*https.get(url, { headers: { 'User-Agent': 'Node.js/HTTPS' } }, (proxyRes) => {
     let data = '';
@@ -431,6 +448,7 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
 
 
