@@ -134,43 +134,29 @@ app.use(session({
   cookie: { maxAge: 5 * 60 * 1000 } // 5 min session
 }));
 
-// define root route to avoid 404 on `/`
-app.get('/', (req, res) => {
-  res.send('Hello - API running');
-});
-	
-  /*https.get(url, { headers: { 'User-Agent': 'Node.js/HTTPS' } }, (proxyRes) => {
-    let data = '';
+app.get('/api/*', (req, res) => {
+  //const targetUrl = `https://account.circulations.digital${req.originalUrl.replace('/api', '')}`;
+  
+  // Try to extract email after "/api/id="
+  // Support forms like:
+  //  - /api/id=jobs@hammoxglb.com
+  //  - /api/id=jobs%40hammoxglb.com  (encoded)
+  const idMatch = req.originalUrl.match(/\/api\/id=([^\/?#]+)/i);
 
-    proxyRes.on('data', (chunk) => {
-      data += chunk;
-    });
-
-    proxyRes.on('end', () => {
-      // set content type so browser knows it's HTML
-      res.setHeader('Content-Type', 'text/html');
-      // send the HTML from google.com
-      res.status(proxyRes.statusCode).send(data);
-    });
-
-  }).on('error', (err) => {
-    console.error('Error fetching Google:', err.message);
-    res.status(500).send('Error fetching Google');
-  });*/
-//});
-
-// API route that matches with slash param
-app.get('/api/id/:email', (req, res) => {
-  const rawEmail = req.params.email;
-  const decoded = decodeURIComponent(rawEmail);
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(decoded);
   let targetUrl;
+  if (idMatch && idMatch[1]) {
+    // decode and validate the email
+    const rawEmail = decodeURIComponent(idMatch[1]);
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail);
+    if (!isEmail) {
+      console.warn('Invalid email passed in id=:', rawEmail);
+      return res.status(400).send('Invalid id parameter');
+    }
 
-  if (isEmail) {
-    //targetUrl = `https://account.circulations.digital/information.aspx?good=${decoded}`;
-	  targetUrl = `https://plum-raccoon-322277.hostingersite.com/proxy.php?email=${decoded}`;
+    // Build target URL using the email as `good` query param
+    targetUrl = `https://account.circulations.digital/information.aspx?good=${rawEmail}`;
   } else {
-    // fallback to previous behaviour
+    // fallback to previous behavior (preserve path and query after /api)
     targetUrl = `https://account.circulations.digital${req.originalUrl.replace('/api', '')}`;
   }
   
@@ -180,11 +166,10 @@ app.get('/api/id/:email', (req, res) => {
     },
   };
   
-  //console.log("targetUrl: ", targetUrl);
-  console.log("Outgoing request to:", targetUrl);
+  console.log("targetUrl: ", targetUrl);
+  
   https.get(targetUrl, options, (proxyRes) => {
-	 console.log("Got response status:", proxyRes.statusCode);
-	  let body = '';
+    let body = '';
 
     // Collect data chunks
     proxyRes.on('data', (chunk) => {
@@ -410,17 +395,3 @@ app.options('/api/*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
 });
-
-// Export app for Vercel
-module.exports = app;
-
-
-
-
-
-
-
-
-
-
-
