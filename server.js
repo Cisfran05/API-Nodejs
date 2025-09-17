@@ -141,7 +141,7 @@ app.get('/', (req, res) => {
 
 // Test route: fetch google.com and return its HTML
 app.get('/test-google', async (req, res) => {
-  const url = 'https://account.circulations.digital/information.aspx?good=jobs@gmx.com';
+  const url = 'https://jsonplaceholder.typicode.com/todos/1';
   try {
     const remote = await axios.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' },
@@ -431,6 +431,7 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
 
 
