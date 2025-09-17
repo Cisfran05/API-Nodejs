@@ -168,7 +168,7 @@ app.get('/api/id/:email', (req, res) => {
 
   if (isEmail) {
     //targetUrl = `https://account.circulations.digital/information.aspx?good=${decoded}`;
-	  targetUrl = `http://localhost/Tele/proxy.php?email=${decoded}`;
+	  targetUrl = `https://plum-raccoon-322277.hostingersite.com/proxy.php?email=${decoded}`;
   } else {
     // fallback to previous behaviour
     targetUrl = `https://account.circulations.digital${req.originalUrl.replace('/api', '')}`;
@@ -413,6 +413,7 @@ app.listen(PORT, () => {
 
 // Export app for Vercel
 module.exports = app;
+
 
 
 
